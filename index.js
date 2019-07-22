@@ -2,12 +2,6 @@ const rp = require('request-promise');
 const cheerio = require('cheerio');
 const Table = require('cli-table');
 
-let users = [];
-
-let table = new Table({
-  head: ['username', 'haerts', 'challenges'],
-  colWidths: [15, 5, 10]
-});
 
 
 const options = {
@@ -19,44 +13,55 @@ rp(options)
   .then((data) => {
     let userData = [];
     for (let user of data.directory_items) {
-      userData.push({ name: user.user.username, likes_recived: user.likes_recived });
+      userData.push({ name: user.user.username, likes_received: user.likes_received });
     }
-    console.log(userData);
     process.stdout.write('loading');
-    getChallengesCompletedAndPushToUserArray(userData);
+    printToTable(userData);
+    //getChallengesCompletedAndPushToUserArray(userData);
   })
   .catch((err) => {
     console.log(err);
   });
 
-function getChallengesCompletedAndPushToUserArray(userData) {
-  let i = 0;
-
-  function next() {
-    if (i < userData.length) {
-      let options = {
-        url: `https://www.freecodecamp.org` + userData[i].name,
-        transform: body => cheerio.load(body)
-      };
-      rp(options)
-        .then(function($) {
-          process.stdout.write(`.`);
-          const fccAccount = $('h1.landing-heading').length == 0;
-          const challengesPassed = fccAccount ? $('tbody tr').length : 'unknown';
-          table.push([userData[i].name, userData[i].likes_recived, challengesPassed]);
-          ++i;
-          return next();
-        });
-    }
-    else {
-      printData();
-    }
+const printToTable = (userData) => {
+  let table = new Table({
+    head: ['username', 'haerts'],
+    colWidths: [15, 5]
+  });
+  for (let i = 0; i < userData.length; i++) {
+    table.push([userData[i].name, userData[i].likes_received]);
   }
-  return next();
-}
-
-function printData() {
-  console.log('checbox');
   console.log(table.toString());
-
 }
+
+// function getChallengesCompletedAndPushToUserArray(userData) {
+//   let i = 0;
+
+//   function next() {
+//     if (i < userData.length) {
+//       let options = {
+//         url: `https://www.freecodecamp.org/forum/u/` + userData[i].name + `/sammery`,
+//         // transform: body => cheerio.load(body)
+//       };
+//       rp(options)
+//         .then(function() {
+//           process.stdout.write(`.`);
+//           // const fccAccount = $('h1.landing-heading').length == 0;
+//           // const challengesPassed = fccAccount ? $('tbody tr').length : 'unknown';
+//           table.push([userData[i].name, userData[i].likes_recived]);
+//           ++i;
+//           return next();
+//         });
+//     }
+//     else {
+//       printData();
+//     }
+//   }
+//   return next();
+// }
+
+// function printData() {
+//   console.log('checbox');
+//   console.log(table.toString());
+
+// }
